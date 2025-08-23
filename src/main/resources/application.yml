@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/Bank_DB
+    username: gnemirko
+    password: 1214
+  jpa:
+    hibernate:
+      ddl-auto: none
