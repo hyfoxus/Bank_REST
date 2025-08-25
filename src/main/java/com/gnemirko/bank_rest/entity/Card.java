@@ -1,17 +1,19 @@
 package com.gnemirko.bank_rest.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.math.BigDecimal;
 import java.sql.Date;
+
 
 @Entity
 @Data
 @Getter @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table (name = "card")
 public class Card {
     @Id
     @GeneratedValue
@@ -20,12 +22,13 @@ public class Card {
     private String number;
 
     @ManyToOne()
-    @JoinColumn(name = "owner")
+    @JoinColumn(name = "user_id")
     private User owner;
 
     private Date expiryDate;
 
-    private Float balance;
+    private BigDecimal balance;
 
-
+    @Enumerated(EnumType.STRING)
+    private CardStatus status;
 }
