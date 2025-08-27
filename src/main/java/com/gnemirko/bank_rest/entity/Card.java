@@ -15,13 +15,14 @@ import java.sql.Date;
 @Builder
 @Table (name = "card")
 public class Card {
+
     @Id
     @GeneratedValue
     private Long id;
 
     private String number;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User owner;
 

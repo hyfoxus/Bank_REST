@@ -16,16 +16,17 @@ public class Request {
 
     @Id
     @GeneratedValue
-    private String id;
+    private Long id;
 
     @ManyToOne
-    @JoinColumn (name = "requestor")
+    @JoinColumn (name = "requestor_id")
     private User requestor;
 
+    @Enumerated(EnumType.STRING)
     private RequestState state;
 
     @ManyToOne
-    @JoinColumn (name = "object")
+    @JoinColumn (name = "object_id")
     private Card object;
 
     private String operation;

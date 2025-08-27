@@ -15,6 +15,7 @@ public class User {
     @GeneratedValue
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
 
