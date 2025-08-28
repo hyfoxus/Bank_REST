@@ -149,7 +149,6 @@ class CardServiceImplTest {
 
     @Nested
     class UpdateOperations {
-
         @Test
         void updateStatus_cannotReactivateExpired() {
             Card existing = new Card();
@@ -165,12 +164,9 @@ class CardServiceImplTest {
 
         @Test
         void updateBalance_negative_forbidden() {
-            // ❗ В твоей реализации сначала проверяется newBalance, и только потом может читаться карта.
-            // Поэтому stubbing findById здесь НЕ НУЖЕН — иначе Mockito жалуется на UnnecessaryStubbing.
             assertThrows(IllegalArgumentException.class,
                     () -> service.updateBalance(10L, new BigDecimal("-1.00")));
             verify(cardRepository, never()).save(any());
-            // и не проверяем findById, потому что он не обязан вызываться при невалидном newBalance
         }
     }
 
@@ -186,7 +182,6 @@ class CardServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
         when(cardRepository.save(any(Card.class))).thenAnswer(inv -> inv.getArgument(0, Card.class));
 
-        // ✅ expiry — СТРОКА в формате MM/YY (раньше здесь была дата "2026-08-01")
         CreateCardRequest req = new CreateCardRequest(
                 "4111111111111111",
                 "Owner",
