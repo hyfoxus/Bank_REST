@@ -3,6 +3,7 @@ package com.gnemirko.bank_rest.service;
 import com.gnemirko.bank_rest.dto.CreateUserRequest;
 import com.gnemirko.bank_rest.entity.Role;
 import com.gnemirko.bank_rest.entity.User;
+import com.gnemirko.bank_rest.exception.ResourceNotFoundException;
 import com.gnemirko.bank_rest.exception.UserNameAlreadyExistsException;
 import com.gnemirko.bank_rest.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -26,13 +27,18 @@ public class UserServiceImpl implements UserService {
         }
 
         Role role = Role.valueOf(request.role());
-
         User user = User.builder()
                 .name(request.name())
                 .passwordHash(encoder.encode(request.password()))
                 .role(role)
                 .build();
 
+        return userRepository.save(user);
+    }
+
+    public User makeUserAdmin(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User:" + id + " doesn't exist"));
+        user.setRole(Role.ADMIN);
         return userRepository.save(user);
     }
 }

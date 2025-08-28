@@ -10,11 +10,11 @@ import java.util.UUID;
 public interface CardService {
 
     // CRUD
-    Card get(Long id);                 // read
-    Card createForUserId(CreateCardRequest request, Long userId);            // create
+    Card get(Long id);
+    Card createForUserId(CreateCardRequest request, Long userId);
     Card updateStatus(Long id, CardStatus newStatus);
     Card updateBalance(Long id, BigDecimal newBalance);
-    void delete(Long id);              // delete
+    void delete(Long id);
 
     // Перевод между картами
     void transfer(Long fromCardId, Long toCardId, BigDecimal amount);

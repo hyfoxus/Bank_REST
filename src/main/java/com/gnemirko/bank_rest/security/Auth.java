@@ -1,12 +1,12 @@
 package com.gnemirko.bank_rest.security;
 
+import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+@UtilityClass
 public final class Auth {
-    private Auth() {}
-
     public static Long currentUserId() {
         Authentication a = SecurityContextHolder.getContext().getAuthentication();
         if (a instanceof JwtAuthenticationToken token) {

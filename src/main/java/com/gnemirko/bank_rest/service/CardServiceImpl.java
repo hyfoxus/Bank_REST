@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -24,8 +25,8 @@ public class CardServiceImpl implements CardService {
 
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
+
     @Override
-    @Transactional(readOnly = true)
     public Card get(Long id) {
         return cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found: " + id));
@@ -53,9 +54,8 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public Card updateStatus(Long id, CardStatus newStatus) {
-        Card card = get(id);
         if (newStatus == null) throw new IllegalArgumentException("Status is required");
-        // матрица допустимых переходов, при необходимости расширь
+        Card card = get(id);
         if (card.getStatus() == CardStatus.EXPIRED && newStatus == CardStatus.ACTIVE) {
             throw new IllegalArgumentException("Cannot re-activate expired card");
         }
@@ -66,15 +66,14 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public Card updateBalance(Long id, BigDecimal newBalance) {
-        Card card = get(id);
         if (newBalance == null || newBalance.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Balance cannot be negative");
         }
-        // Обычно прямой set баланса делают только админ-операциями.
-        // Для пользователя лучше иметь deposit/withdraw/transfer.
+        Card card = get(id);
         card.setBalance(newBalance);
         return cardRepository.save(card);
     }
+
     @Override
     @Transactional
     public void delete(Long id) {
@@ -97,13 +96,11 @@ public class CardServiceImpl implements CardService {
         Card from = get(fromCardId);
         Card to = get(toCardId);
 
-        // Переводы только между картами одного владельца
         if (from.getOwner() == null || to.getOwner() == null ||
                 !Objects.equals(from.getOwner().getId(), to.getOwner().getId())) {
             throw new IllegalArgumentException("Transfer is only allowed between cards of the same user");
         }
 
-        // Проверки статуса и срока действия
         validateActive(from);
         validateActive(to);
         validateNotExpired(from);
@@ -127,8 +124,8 @@ public class CardServiceImpl implements CardService {
 
     private void validateNotExpired(Card card) {
         if (card.getExpiryDate() == null) return;
-        var ym = java.time.YearMonth.from(card.getExpiryDate().toLocalDate());
-        if (java.time.LocalDate.now().isAfter(ym.atEndOfMonth())) {
+        var ym = YearMonth.from(card.getExpiryDate().toLocalDate());
+        if (LocalDate.now().isAfter(ym.atEndOfMonth())) {
             throw new IllegalArgumentException("Card is expired");
         }
     }

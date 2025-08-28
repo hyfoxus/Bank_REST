@@ -5,4 +5,5 @@ import com.gnemirko.bank_rest.entity.User;
 
 public interface UserService {
     User createUser (CreateUserRequest request);
+    User makeUserAdmin (Long id);
 }

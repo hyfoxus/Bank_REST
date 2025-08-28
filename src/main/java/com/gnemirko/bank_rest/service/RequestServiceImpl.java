@@ -73,6 +73,5 @@ public class RequestServiceImpl implements RequestService {
                 cardRepository.save(card);
             }
         }
-        // TODO: add UNBLOCK, REISSUE, LIMIT_CHANGE, etc.
     }
 }
