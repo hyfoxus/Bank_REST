@@ -6,3 +6,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  mvc:
+    web:
+      resources:
+        add-mappings: false

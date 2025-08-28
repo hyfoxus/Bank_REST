@@ -14,8 +14,8 @@ public record CreateCardRequest(
         @Size(min = 2, max = 64, message = "Owner name must be between 2 and 64 characters")
         String ownerName,
 
-        @Pattern(regexp = "^(0[1-9]|1[0-2])\\/\\d{2}$", message = "Expiry must be in MM/YY format")
-        Date expiry,
+        @Pattern(regexp="^(0[1-9]|1[0-2])\\/\\d{2}$", message="Expiry must be in MM/YY format")
+        String expiry,
 
         @NotBlank(message = "Status is required")
         String status,

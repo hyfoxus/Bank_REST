@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -37,11 +38,12 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId)); // => 404
 
         CardStatus status = CardStatus.valueOf(request.status().toUpperCase());
-
+        var ym = java.time.YearMonth.parse(request.expiry(), java.time.format.DateTimeFormatter.ofPattern("MM/yy"));
+        var expiryDate = java.sql.Date.valueOf(ym.atEndOfMonth());
         Card card = Card.builder()
                 .owner(user)
                 .number(request.cardNumber())
-                .expiryDate(request.expiry())
+                .expiryDate(expiryDate)
                 .status(status)
                 .balance(request.balance())
                 .build();
@@ -50,18 +52,29 @@ public class CardServiceImpl implements CardService {
 
     @Override
     @Transactional
-    public Card update(Long id, Card patch) {
-        final Card existing = get(id);
-
-        // Обновляем только «редактируемые» поля. При необходимости сократи/расширь.
-        if (patch.getOwner() != null)      existing.setOwner(patch.getOwner());
-        if (patch.getExpiryDate() != null)  existing.setExpiryDate(patch.getExpiryDate());
-        if (patch.getStatus() != null)      existing.setStatus(patch.getStatus());
-
-        validateNotExpired(existing);
-        return existing; // будет сохранён при коммите транзакции (dirty checking)
+    public Card updateStatus(Long id, CardStatus newStatus) {
+        Card card = get(id);
+        if (newStatus == null) throw new IllegalArgumentException("Status is required");
+        // матрица допустимых переходов, при необходимости расширь
+        if (card.getStatus() == CardStatus.EXPIRED && newStatus == CardStatus.ACTIVE) {
+            throw new IllegalArgumentException("Cannot re-activate expired card");
+        }
+        card.setStatus(newStatus);
+        return cardRepository.save(card);
     }
 
+    @Override
+    @Transactional
+    public Card updateBalance(Long id, BigDecimal newBalance) {
+        Card card = get(id);
+        if (newBalance == null || newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Balance cannot be negative");
+        }
+        // Обычно прямой set баланса делают только админ-операциями.
+        // Для пользователя лучше иметь deposit/withdraw/transfer.
+        card.setBalance(newBalance);
+        return cardRepository.save(card);
+    }
     @Override
     @Transactional
     public void delete(Long id) {
@@ -74,55 +87,48 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public void transfer(Long fromCardId, Long toCardId, BigDecimal amount) {
-        if (fromCardId == null || toCardId == null) {
-            throw new IllegalArgumentException("fromCardId and toCardId are required");
+        if (Objects.equals(fromCardId, toCardId)) {
+            throw new IllegalArgumentException("Source and target cards must be different");
         }
-        if (fromCardId.equals(toCardId)) {
-            throw new IllegalArgumentException("fromCardId must differ from toCardId");
-        }
-        if (amount == null || amount.signum() <= 0) {
-            throw new IllegalArgumentException("amount must be > 0");
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
         }
 
+        Card from = get(fromCardId);
+        Card to = get(toCardId);
 
-
-        // Загружаем обе карты в одной транзакции
-        final Card from = get(fromCardId);
-        final Card to   = get(toCardId);
-
-        if (!from.getOwner().equals(to.getOwner())) {
-            throw new IllegalArgumentException("Cards aren't owned by same person");
+        // Переводы только между картами одного владельца
+        if (from.getOwner() == null || to.getOwner() == null ||
+                !Objects.equals(from.getOwner().getId(), to.getOwner().getId())) {
+            throw new IllegalArgumentException("Transfer is only allowed between cards of the same user");
         }
 
+        // Проверки статуса и срока действия
         validateActive(from);
         validateActive(to);
+        validateNotExpired(from);
+        validateNotExpired(to);
 
-        // Нормализуем scale=2 (если у тебя другой — поменяй здесь одно место)
-        final BigDecimal amt = amount.setScale(2);
+        if (from.getBalance() == null) from.setBalance(BigDecimal.ZERO);
+        if (to.getBalance() == null) to.setBalance(BigDecimal.ZERO);
 
-        if (from.getBalance() == null || to.getBalance() == null) {
-            throw new IllegalStateException("Balance must not be null");
-        }
-        if (from.getBalance().compareTo(amt) < 0) {
+        if (from.getBalance().compareTo(amount) < 0) {
             throw new IllegalArgumentException("Insufficient funds");
         }
 
+        from.setBalance(from.getBalance().subtract(amount));
+        to.setBalance(to.getBalance().add(amount));
 
-
-        from.setBalance(from.getBalance().subtract(amt));
-        to.setBalance(to.getBalance().add(amt));
-        // save() не обязателен — Hibernate сам зафлашит изменения на коммите.
-        // Если у тебя отключён dirty checking, то раскомментируй:
-        // cardRepository.save(from);
-        // cardRepository.save(to);
+        cardRepository.save(from);
+        cardRepository.save(to);
     }
 
     /* ===== helpers ===== */
 
     private void validateNotExpired(Card card) {
-        // считаем, что карта просрочена, если истёк месяц expiryDate
-        final LocalDate nowMonth = LocalDate.now().withDayOfMonth(1);
-        if (card.getExpiryDate() != null && card.getExpiryDate().toLocalDate().isBefore(nowMonth)){
+        if (card.getExpiryDate() == null) return;
+        var ym = java.time.YearMonth.from(card.getExpiryDate().toLocalDate());
+        if (java.time.LocalDate.now().isAfter(ym.atEndOfMonth())) {
             throw new IllegalArgumentException("Card is expired");
         }
     }
