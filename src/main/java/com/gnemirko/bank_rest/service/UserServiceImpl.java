@@ -1,6 +1,7 @@
 package com.gnemirko.bank_rest.service;
 
 import com.gnemirko.bank_rest.dto.CreateUserRequest;
+import com.gnemirko.bank_rest.dto.UserResponse;
 import com.gnemirko.bank_rest.entity.Role;
 import com.gnemirko.bank_rest.entity.User;
 import com.gnemirko.bank_rest.exception.ResourceNotFoundException;
@@ -8,6 +9,8 @@ import com.gnemirko.bank_rest.exception.UserNameAlreadyExistsException;
 import com.gnemirko.bank_rest.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,5 +43,11 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User:" + id + " doesn't exist"));
         user.setRole(Role.ADMIN);
         return userRepository.save(user);
+    }
+    public Page<UserResponse> list(Pageable pageable) {
+        return userRepository.findAll(pageable).map(UserResponse::from);
+    }
+    public User getUser(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User:" + id + " doesn't exist"));
     }
 }

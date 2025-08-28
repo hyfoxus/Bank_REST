@@ -1,9 +1,8 @@
-package com.gnemirko.bank_rest.controller.admin;
+package com.gnemirko.bank_rest.controller;
 
 import com.gnemirko.bank_rest.dto.CreateUserRequest;
 import com.gnemirko.bank_rest.dto.UserResponse;
 import com.gnemirko.bank_rest.entity.User;
-import com.gnemirko.bank_rest.repository.UserRepository;
 import com.gnemirko.bank_rest.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

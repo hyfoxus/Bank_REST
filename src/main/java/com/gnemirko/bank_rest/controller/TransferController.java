@@ -1,4 +1,4 @@
-package com.gnemirko.bank_rest.controller.me;
+package com.gnemirko.bank_rest.controller;
 
 import com.gnemirko.bank_rest.service.CardService;
 import jakarta.validation.Valid;

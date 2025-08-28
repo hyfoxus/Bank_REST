@@ -1,6 +1,7 @@
 package com.gnemirko.bank_rest.service;
 
 
+import com.gnemirko.bank_rest.dto.CardResponse;
 import com.gnemirko.bank_rest.dto.CreateCardRequest;
 import com.gnemirko.bank_rest.entity.Card;
 import com.gnemirko.bank_rest.entity.CardStatus;
@@ -8,10 +9,15 @@ import com.gnemirko.bank_rest.entity.User;
 import com.gnemirko.bank_rest.exception.ResourceNotFoundException;
 import com.gnemirko.bank_rest.repository.CardRepository;
 import com.gnemirko.bank_rest.repository.UserRepository;
+import com.gnemirko.bank_rest.util.CardSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -118,6 +124,21 @@ public class CardServiceImpl implements CardService {
 
         cardRepository.save(from);
         cardRepository.save(to);
+    }
+
+    public Page<CardResponse> listAll(
+            String ownerName,
+            CardStatus status,
+            String last4,
+            Pageable pageable
+    ) {
+        Specification<Card> spec = Specification.allOf(
+                CardSpecification.hasOwnerName(ownerName),
+                CardSpecification.hasStatus(status),
+                CardSpecification.hasLast4(last4)
+        );
+
+        return cardRepository.findAll(spec, pageable).map(CardResponse::from);
     }
 
     /* ===== helpers ===== */

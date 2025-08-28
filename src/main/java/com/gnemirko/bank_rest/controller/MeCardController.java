@@ -1,4 +1,4 @@
-package com.gnemirko.bank_rest.controller.me;
+package com.gnemirko.bank_rest.controller;
 
 import com.gnemirko.bank_rest.dto.CardResponse;
 import com.gnemirko.bank_rest.entity.Card;

@@ -1,19 +1,16 @@
-package com.gnemirko.bank_rest.controller.admin;
+package com.gnemirko.bank_rest.controller;
 
 import com.gnemirko.bank_rest.dto.CardResponse;
 import com.gnemirko.bank_rest.dto.CreateCardRequest;
 import com.gnemirko.bank_rest.entity.Card;
 import com.gnemirko.bank_rest.entity.CardStatus;
-import com.gnemirko.bank_rest.repository.CardRepository;
 import com.gnemirko.bank_rest.service.CardService;
-import com.gnemirko.bank_rest.util.CardSpecification;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
