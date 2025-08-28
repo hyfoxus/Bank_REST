@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminUserController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
+
 
     @PostMapping
     public UserResponse create(@Valid @RequestBody CreateUserRequest req) {
@@ -29,12 +29,11 @@ public class AdminUserController {
 
     @GetMapping
     public Page<UserResponse> list(Pageable pageable) {
-        return userRepository.findAll(pageable).map(UserResponse::from);
+        return userService.list(pageable);
     }
 
     @GetMapping("/{id}")
     public UserResponse get(@PathVariable Long id) {
-        return userRepository.findById(id).map(UserResponse::from)
-                .orElseThrow(() -> new com.gnemirko.bank_rest.exception.ResourceNotFoundException("User: " + id));
+        return UserResponse.from(userService.getUser(id));
     }
 }

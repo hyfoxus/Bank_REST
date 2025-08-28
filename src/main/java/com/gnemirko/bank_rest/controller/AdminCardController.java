@@ -28,7 +28,6 @@ import java.math.BigDecimal;
 public class AdminCardController {
 
     private final CardService cardService;
-    private final CardRepository cardRepository;
 
     /**
      * Список всех карт с фильтрами и пагинацией (фильтрация в БД через Specification).
@@ -40,13 +39,7 @@ public class AdminCardController {
             @RequestParam(required = false) String last4,
             Pageable pageable
     ) {
-        Specification<Card> spec = Specification.allOf(
-                CardSpecification.hasOwnerName(ownerName),
-                CardSpecification.hasStatus(status),
-                CardSpecification.hasLast4(last4)
-        );
-
-        return cardRepository.findAll(spec, pageable).map(CardResponse::from);
+        return cardService.listAll(ownerName, status, last4, pageable);
     }
 
     /**
