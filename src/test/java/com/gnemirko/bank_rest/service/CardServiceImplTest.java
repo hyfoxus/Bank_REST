@@ -7,14 +7,15 @@ import com.gnemirko.bank_rest.entity.User;
 import com.gnemirko.bank_rest.exception.ResourceNotFoundException;
 import com.gnemirko.bank_rest.repository.CardRepository;
 import com.gnemirko.bank_rest.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -119,7 +120,6 @@ class CardServiceImplTest {
             var ex = assertThrows(IllegalArgumentException.class,
                     () -> service.transfer(10L, 20L, new BigDecimal("1000.00")));
             assertTrue(ex.getMessage().toLowerCase().contains("insufficient"));
-            // Балансы не меняются
             assertEquals(new BigDecimal("100.00"), from.getBalance());
             assertEquals(new BigDecimal("50.00"), to.getBalance());
         }
@@ -137,7 +137,6 @@ class CardServiceImplTest {
 
         @Test
         void expiredCard_forbidden() {
-            // Помечаем карту как «просроченную» (дата сильно в прошлом)
             from.setExpiryDate(Date.valueOf(LocalDate.now().minusYears(1).withDayOfMonth(1)));
             when(cardRepository.findById(10L)).thenReturn(Optional.of(from));
             when(cardRepository.findById(20L)).thenReturn(Optional.of(to));
@@ -166,10 +165,12 @@ class CardServiceImplTest {
 
         @Test
         void updateBalance_negative_forbidden() {
-            when(cardRepository.findById(10L)).thenReturn(Optional.of(from));
+            // ❗ В твоей реализации сначала проверяется newBalance, и только потом может читаться карта.
+            // Поэтому stubbing findById здесь НЕ НУЖЕН — иначе Mockito жалуется на UnnecessaryStubbing.
             assertThrows(IllegalArgumentException.class,
                     () -> service.updateBalance(10L, new BigDecimal("-1.00")));
             verify(cardRepository, never()).save(any());
+            // и не проверяем findById, потому что он не обязан вызываться при невалидном newBalance
         }
     }
 
@@ -185,10 +186,11 @@ class CardServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
         when(cardRepository.save(any(Card.class))).thenAnswer(inv -> inv.getArgument(0, Card.class));
 
+        // ✅ expiry — СТРОКА в формате MM/YY (раньше здесь была дата "2026-08-01")
         CreateCardRequest req = new CreateCardRequest(
                 "4111111111111111",
                 "Owner",
-                Date.valueOf(LocalDate.now().plusMonths(12).withDayOfMonth(1)).toString(),
+                "12/30",
                 "ACTIVE",
                 new BigDecimal("0.00")
         );
@@ -202,7 +204,7 @@ class CardServiceImplTest {
     @Test
     void createForUserId_userMissing_404() {
         when(userRepository.findById(2L)).thenReturn(Optional.empty());
-        CreateCardRequest req = new CreateCardRequest("4","o", Date.valueOf(LocalDate.now()).toString(), "ACTIVE", BigDecimal.ZERO);
+        CreateCardRequest req = new CreateCardRequest("4","o","12/30","ACTIVE", BigDecimal.ZERO);
         assertThrows(ResourceNotFoundException.class, () -> service.createForUserId(req, 2L));
     }
 }

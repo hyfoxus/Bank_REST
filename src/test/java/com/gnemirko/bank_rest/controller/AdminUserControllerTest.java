@@ -54,14 +54,14 @@ class AdminUserControllerTest {
         User u = user(1L, "Alice");
         when(userService.createUser(any(CreateUserRequest.class))).thenReturn(u);
 
-        var req = new CreateUserRequest("Alice", "USER", "secret");
+        var req = new CreateUserRequest("Alice", "secret123", "USER");
 
         mvc.perform(post("/api/admin/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("Alice"));
+                .andExpect(jsonPath("$.username").value("Alice"));
     }
 
     @Test
@@ -75,7 +75,7 @@ class AdminUserControllerTest {
         mvc.perform(get("/api/admin/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(2))
-                .andExpect(jsonPath("$.content[0].name").value("Bob"));
+                .andExpect(jsonPath("$.content[0].username").value("Bob"));
     }
 
     @Test
@@ -87,6 +87,6 @@ class AdminUserControllerTest {
         mvc.perform(get("/api/admin/users/3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(3))
-                .andExpect(jsonPath("$.name").value("Charlie"));
+                .andExpect(jsonPath("$.username").value("Charlie"));
     }
 }

@@ -1,4 +1,5 @@
 package com.gnemirko.bank_rest.controller;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnemirko.bank_rest.dto.CardResponse;
 import com.gnemirko.bank_rest.dto.CreateCardRequest;
@@ -27,11 +28,12 @@ import java.util.List;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// Тест только контроллера, без web-фильтров; зависимости подставляем руками через TestConfig
+// Контроллер тестируем изолированно: подставляем mock CardService как бин через TestConfig
 @WebMvcTest(controllers = AdminCardController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import(AdminCardControllerTest.TestConfig.class)
@@ -62,9 +64,9 @@ class AdminCardControllerTest {
     @WithMockUser(roles = "ADMIN")
     void listAll_withFilters_returnsMaskedNumbers() throws Exception {
         Card c = sampleCard();
-        // cardService.listAll(ownerName, status, last4, pageable) → Page<CardResponse>
         Page<CardResponse> page = new PageImpl<>(List.of(CardResponse.from(c)), PageRequest.of(0, 20), 1);
 
+        // сигнатура сервиса: listAll(ownerName, status, last4, pageable)
         when(cardService.listAll(any(), any(), any(), any(Pageable.class))).thenReturn(page);
 
         mvc.perform(get("/api/admin/cards")
@@ -130,6 +132,6 @@ class AdminCardControllerTest {
     void delete_callsService() throws Exception {
         mvc.perform(delete("/api/admin/cards/100"))
                 .andExpect(status().isOk());
-        Mockito.verify(cardService).delete(100L);
+        verify(cardService).delete(100L);
     }
 }

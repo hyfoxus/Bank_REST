@@ -7,6 +7,4 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.List;
 
 public interface CardRepository extends JpaRepository<Card, Long>, JpaSpecificationExecutor<Card> {
-    List<Card> findAllByAccountId(Long accountId);
-    Card findByCardId(Long cardId);
 }
