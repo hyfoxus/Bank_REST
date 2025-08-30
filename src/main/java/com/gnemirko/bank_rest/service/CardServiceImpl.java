@@ -23,7 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Objects;
-import java.util.UUID;
+
 
 @Service
 @RequiredArgsConstructor
@@ -99,8 +99,16 @@ public class CardServiceImpl implements CardService {
             throw new IllegalArgumentException("Amount must be positive");
         }
 
-        Card from = get(fromCardId);
-        Card to = get(toCardId);
+        Long firstId  = fromCardId < toCardId ? fromCardId : toCardId;
+        Long secondId = fromCardId < toCardId ? toCardId   : fromCardId;
+
+        Card firstLocked = cardRepository.findByIdForUpdate(firstId)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found: " + firstId));
+        Card secondLocked = cardRepository.findByIdForUpdate(secondId)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found: " + secondId));
+
+        Card from = (firstLocked.getId().equals(fromCardId)) ? firstLocked : secondLocked;
+        Card to   = (firstLocked.getId().equals(toCardId))   ? firstLocked : secondLocked;
 
         if (from.getOwner() == null || to.getOwner() == null ||
                 !Objects.equals(from.getOwner().getId(), to.getOwner().getId())) {
@@ -113,7 +121,7 @@ public class CardServiceImpl implements CardService {
         validateNotExpired(to);
 
         if (from.getBalance() == null) from.setBalance(BigDecimal.ZERO);
-        if (to.getBalance() == null) to.setBalance(BigDecimal.ZERO);
+        if (to.getBalance() == null)   to.setBalance(BigDecimal.ZERO);
 
         if (from.getBalance().compareTo(amount) < 0) {
             throw new IllegalArgumentException("Insufficient funds");
@@ -121,6 +129,7 @@ public class CardServiceImpl implements CardService {
 
         from.setBalance(from.getBalance().subtract(amount));
         to.setBalance(to.getBalance().add(amount));
+
 
         cardRepository.save(from);
         cardRepository.save(to);

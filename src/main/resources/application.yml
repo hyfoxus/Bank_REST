@@ -26,3 +26,12 @@ springdoc:
   show-actuator: false
 server:
   port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: INFO
+    com.gnemirko.bank_rest: DEBUG
+    org.springframework.web: INFO
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{reqId} %X{userId}] %logger{36} - %msg%n"

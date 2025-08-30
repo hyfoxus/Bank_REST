@@ -29,6 +29,7 @@ services:
       SERVER_PORT: 8080
       # для шифрования (если используешь AttributeConverter)
       APP_KMS_KEY: ${APP_KMS_KEY:-}   # base64 256-bit; положи в .env или секреты CI
+
     ports:
       - "8080:8080"
     restart: unless-stopped
