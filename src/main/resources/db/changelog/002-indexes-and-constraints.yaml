@@ -1,0 +1,107 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-01-users-unique-username
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - indexExists:
+                tableName: users
+                indexName: idx_users_username
+      changes:
+        - addUniqueConstraint:
+            tableName: users
+            columnNames: username
+            constraintName: uq_users_username
+
+  - changeSet:
+      id: 002-02-cards-unique-number
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - uniqueConstraintExists:
+                tableName: cards
+                constraintName: uq_cards_number
+      changes:
+        - addUniqueConstraint:
+            tableName: cards
+            columnNames: number
+            constraintName: uq_cards_number
+
+  - changeSet:
+      id: 002-03-fk-cards-owner
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - foreignKeyConstraintExists:
+                foreignKeyName: fk_cards_owner
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: cards
+            baseColumnNames: owner_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_cards_owner
+            onDelete: RESTRICT
+            onUpdate: CASCADE
+
+  - changeSet:
+      id: 002-04-fk-tx-cards
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - foreignKeyConstraintExists:
+                foreignKeyName: fk_tx_from_card
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: from_card_id
+            referencedTableName: cards
+            referencedColumnNames: id
+            constraintName: fk_tx_from_card
+            onDelete: RESTRICT
+            onUpdate: CASCADE
+
+  - changeSet:
+      id: 002-05-fk-tx-cards2
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - foreignKeyConstraintExists:
+                foreignKeyName: fk_tx_to_card
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: to_card_id
+            referencedTableName: cards
+            referencedColumnNames: id
+            constraintName: fk_tx_to_card
+            onDelete: RESTRICT
+            onUpdate: CASCADE
+
+  - changeSet:
+      id: 002-06-index-tx-created
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - indexExists:
+                tableName: transactions
+                indexName: idx_tx_created_at
+      changes:
+        - createIndex:
+            tableName: transactions
+            indexName: idx_tx_created_at
+            columns:
+              - column:
+                  name: created_at

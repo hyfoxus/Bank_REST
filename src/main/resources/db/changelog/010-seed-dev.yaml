@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-01-seed-users-dev
+      author: gnemirko
+      context: dev
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: email,    value: "admin@bank.local" }
+              - column: { name: password, value: "{noop}admin" }   # для простоты
+              - column: { name: role,     value: "ADMIN" }
+              - column: { name: enabled,  valueBoolean: true }
+
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: email,    value: "user@bank.local" }
+              - column: { name: password, value: "{noop}user" }
+              - column: { name: role,     value: "USER" }
+              - column: { name: enabled,  valueBoolean: true }
+
+  - changeSet:
+      id: 002-02-seed-cards-dev
+      author: gnemirko
+      context: dev
+      changes:
+        - insert:
+            tableName: cards
+            columns:
+              - column: { name: number,      value: "1111-2222-3333-4444" }
+              - column: { name: status,      value: "ACTIVE" }
+              - column: { name: expiry_date, valueDate: "2030-12-31" }
+              - column: { name: balance,     valueNumeric: "1000.00" }
+              - column:
+                  name: owner_id
+                  valueComputed: "(select id from users where email = 'admin@bank.local')"

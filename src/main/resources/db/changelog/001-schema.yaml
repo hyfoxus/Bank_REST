@@ -1,46 +1,203 @@
 databaseChangeLog:
+  # 001-01 — USERS
   - changeSet:
-      id: 001-schema
-      author: you
+      id: 001-01-create-users
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - nestedPreconditions: true
+        - not:
+            - tableExists:
+                tableName: users
       changes:
         - createTable:
             tableName: users
             columns:
-              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, primaryKeyName: pk_users } }
-              - column: { name: name, type: VARCHAR(64), constraints: { nullable: false, unique: true } }
-              - column: { name: role, type: VARCHAR(16), constraints: { nullable: false } }
-              - column: { name: password_hash, type: VARCHAR(100) }
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: users
+            indexName: idx_users_username
+            unique: true
+            columns:
+              - column:
+                  name: username
 
+  # 001-02 — CARDS
+  - changeSet:
+      id: 001-02-create-cards
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - nestedPreconditions: true
+        - not:
+            - tableExists:
+                tableName: cards
+      changes:
         - createTable:
             tableName: cards
             columns:
-              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, primaryKeyName: pk_cards } }
-              - column: { name: owner_id, type: BIGINT, constraints: { nullable: false } }
-              - column: { name: card_number, type: VARCHAR(512), constraints: { nullable: false } } # шифр/base64
-              - column: { name: last4, type: VARCHAR(4), constraints: { nullable: true } }
-              - column: { name: expiry_date, type: DATE, constraints: { nullable: true } }
-              - column: { name: status, type: VARCHAR(16), constraints: { nullable: false } }       # Enum STRING
-              - column: { name: balance, type: NUMERIC(19,2), constraints: { nullable: false } }
-              - column: { name: version, type: BIGINT, defaultValueNumeric: 0 }                     # @Version
-
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: number
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: owner_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance
+                  type: NUMERIC(19,2)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: cards
+            columnNames: number
+            constraintName: uq_cards_number
         - addForeignKeyConstraint:
             baseTableName: cards
             baseColumnNames: owner_id
             referencedTableName: users
             referencedColumnNames: id
-            constraintName: fk_cards_users
-            onDelete: CASCADE
-
+            constraintName: fk_cards_owner
+            onDelete: RESTRICT
+            onUpdate: CASCADE
         - createIndex:
             tableName: cards
             indexName: idx_cards_owner
-            columns: [ { name: owner_id } ]
+            columns:
+              - column:
+                  name: owner_id
+
+  # 001-03 — TRANSACTIONS
+  - changeSet:
+      id: 001-03-create-transactions
+      author: gnemirko
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - nestedPreconditions: true
+        - not:
+            - tableExists:
+                tableName: transactions
+      changes:
+        - createTable:
+            tableName: transactions
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: from_card_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: to_card_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: NUMERIC(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: from_card_id
+            referencedTableName: cards
+            referencedColumnNames: id
+            constraintName: fk_tx_from_card
+            onDelete: RESTRICT
+            onUpdate: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: to_card_id
+            referencedTableName: cards
+            referencedColumnNames: id
+            constraintName: fk_tx_to_card
+            onDelete: RESTRICT
+            onUpdate: CASCADE
         - createIndex:
-            tableName: cards
-            indexName: idx_cards_last4
-            columns: [ { name: last4 } ]
+            tableName: transactions
+            indexName: idx_tx_created_at
+            columns:
+              - column:
+                  name: created_at
         - createIndex:
-            tableName: users
-            indexName: uq_users_name
-            unique: true
-            columns: [ { name: name } ]
+            tableName: transactions
+            indexName: idx_tx_from_to
+            columns:
+              - column:
+                  name: from_card_id
+              - column:
+                  name: to_card_id
