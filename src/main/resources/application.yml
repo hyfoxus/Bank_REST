@@ -13,6 +13,7 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     enabled: true
+    contexts: dev
 
 springdoc:
   api-docs:
@@ -35,3 +36,7 @@ logging:
 
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{reqId} %X{userId}] %logger{36} - %msg%n"
+
+app:
+  cors:
+    allowed-origins: "http://localhost:3000,http://127.0.0.1:3000"

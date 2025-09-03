@@ -44,7 +44,7 @@ class AdminUserControllerTest {
         User u = new User();
         u.setId(id);
         u.setName(name);
-        u.setRole(Role.USER);
+        u.setRole(Role.ROLE_USER);
         return u;
     }
 

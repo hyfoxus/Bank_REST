@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
 
     public User makeUserAdmin(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User:" + id + " doesn't exist"));
-        user.setRole(Role.ADMIN);
+        user.setRole(Role.ROLE_ADMIN);
         return userRepository.save(user);
     }
     public Page<UserResponse> list(Pageable pageable) {

@@ -12,12 +12,10 @@ public final class Auth {
         if (a instanceof JwtAuthenticationToken token) {
             var jwt = token.getToken();
 
-            // 1) Кладёшь id пользователя в claim "uid" при выдаче токена
             Object uid = jwt.getClaim("uid");
             if (uid instanceof Number n) return n.longValue();
             if (uid instanceof String s) return Long.parseLong(s);
 
-            // 2) Фоллбек: использовать sub
             String sub = jwt.getSubject();
             try { return Long.parseLong(sub); }
             catch (NumberFormatException e) {

@@ -22,23 +22,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
-/**
- * ЮНИТ-тест конкурентного перевода:
- * - без БД, без SpringBootTest;
- * - CardRepository замокан, но с «реальным» поведением:
- *   findByIdForUpdate блокирует строку через ReentrantLock до завершения обеих save(..).
- */
+
 class CardServiceConcurrencyUnitTest {
 
     private CardRepository cardRepository;
     private UserRepository userRepository;
     private CardServiceImpl service;
 
-    // Примитивное «хранилище» сущностей для юнит-теста
     private final Map<Long, Card> store = new ConcurrentHashMap<>();
     private final Map<Long, ReentrantLock> rowLocks = new ConcurrentHashMap<>();
 
-    // Для трекинга блокировок внутри ТЕКУЩЕГО потока (эмуляция "держим лок до конца транзакции")
     private final ThreadLocal<Set<ReentrantLock>> acquiredLocks = ThreadLocal.withInitial(HashSet::new);
     private final ThreadLocal<Integer> savesInThisTx = ThreadLocal.withInitial(() -> 0);
 
@@ -161,7 +154,6 @@ class CardServiceConcurrencyUnitTest {
         assertTrue(done.await(10, TimeUnit.SECONDS), "Tasks did not finish in time");
         pool.shutdownNow();
 
-        // Проверяем конечные балансы из «хранилища»
         Card freshFrom = store.get(fromId);
         Card freshTo   = store.get(toId);
 

@@ -12,7 +12,6 @@ import java.util.UUID;
 
 public interface CardService {
 
-    // CRUD
     Card get(Long id);
     Card createForUserId(CreateCardRequest request, Long userId);
     Card updateStatus(Long id, CardStatus newStatus);
@@ -24,6 +23,5 @@ public interface CardService {
             String last4,
             Pageable pageable
     );
-    // Перевод между картами
     void transfer(Long fromCardId, Long toCardId, BigDecimal amount);
 }

@@ -1,10 +1,10 @@
 package com.gnemirko.bank_rest.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Data
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,7 +21,11 @@ public class User {
 
     private String name;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String passwordHash;
+
+    @Column(nullable = false)
+    private boolean enabled = true;
 
 }
