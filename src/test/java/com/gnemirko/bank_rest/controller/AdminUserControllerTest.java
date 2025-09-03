@@ -5,6 +5,7 @@ import com.gnemirko.bank_rest.dto.CreateUserRequest;
 import com.gnemirko.bank_rest.dto.UserResponse;
 import com.gnemirko.bank_rest.entity.Role;
 import com.gnemirko.bank_rest.entity.User;
+import com.gnemirko.bank_rest.security.JwtAuthFilter;
 import com.gnemirko.bank_rest.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,6 +14,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
@@ -26,7 +29,13 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = AdminUserController.class)
+@WebMvcTest(
+        controllers = AdminUserController.class,
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = JwtAuthFilter.class
+        )
+)
 @AutoConfigureMockMvc(addFilters = false)
 @Import(AdminUserControllerTest.TestConfig.class)
 class AdminUserControllerTest {

@@ -4,12 +4,9 @@ databaseChangeLog:
       id: 001-01-create-users
       author: gnemirko
       preConditions:
-        - onFail: MARK_RAN
-        - onError: HALT
-        - nestedPreconditions: true
         - not:
-            - tableExists:
-                tableName: users
+            tableExists:
+              tableName: users
       changes:
         - createTable:
             tableName: users
@@ -55,12 +52,9 @@ databaseChangeLog:
       id: 001-02-create-cards
       author: gnemirko
       preConditions:
-        - onFail: MARK_RAN
-        - onError: HALT
-        - nestedPreconditions: true
         - not:
-            - tableExists:
-                tableName: cards
+            tableExists:
+              tableName: cards
       changes:
         - createTable:
             tableName: cards
@@ -128,12 +122,9 @@ databaseChangeLog:
       id: 001-03-create-transactions
       author: gnemirko
       preConditions:
-        - onFail: MARK_RAN
-        - onError: HALT
-        - nestedPreconditions: true
         - not:
-            - tableExists:
-                tableName: transactions
+            tableExists:
+              tableName: transactions
       changes:
         - createTable:
             tableName: transactions

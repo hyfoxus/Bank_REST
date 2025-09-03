@@ -10,8 +10,8 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public interface CardService {
 
+public interface CardService {
     Card get(Long id);
     Card createForUserId(CreateCardRequest request, Long userId);
     Card updateStatus(Long id, CardStatus newStatus);
