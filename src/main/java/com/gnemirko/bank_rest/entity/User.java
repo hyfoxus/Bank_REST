@@ -26,6 +26,7 @@ public class User {
     private String passwordHash;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
 }
