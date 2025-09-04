@@ -112,8 +112,7 @@ class AdminCardControllerTest {
         when(cardService.updateStatus(100L, CardStatus.BLOCKED)).thenReturn(c);
 
         mvc.perform(patch("/api/admin/cards/100/status")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"status\":\"BLOCKED\"}"))
+                        .param("status", "BLOCKED"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(100))
                 .andExpect(jsonPath("$.status").value("BLOCKED"));
@@ -126,8 +125,7 @@ class AdminCardControllerTest {
         when(cardService.updateBalance(100L, new BigDecimal("999.99"))).thenReturn(c);
 
         mvc.perform(patch("/api/admin/cards/100/balance")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"balance\":999.99}"))
+                        .param("balance", "999.99"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.balance").value(999.99));
     }
