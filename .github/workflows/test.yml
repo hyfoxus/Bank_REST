@@ -23,45 +23,41 @@ jobs:
           POSTGRES_DB: bank
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        # ждём, пока БД поднимется
         options: >-
           --health-cmd="pg_isready -U postgres -d bank"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=12
 
-    strategy:
-      matrix:
-        java-version: [ '24' ]  
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Java ${{ matrix.java-version }}
+      - name: Set up Java 24
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ matrix.java-version }}
+          java-version: '24'
           cache: maven
 
       - name: Show Java version
         run: java -version
 
-      - name: Run tests
+      - name: Run tests (Maven)
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bank
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
           SECURITY_JWT_SECRET: TEST_SECRET_32_BYTES_MIN_LENGTH_123456
-
         run: |
           chmod +x mvnw
           ./mvnw -B -ntp test
 
-      - name: Upload surefire reports (on failure)
+      - name: Upload surefire/failsafe reports (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: surefire-reports
-          path: target/surefire-reports
+          name: test-reports
+          path: |
+            **/target/surefire-reports
+            **/target/failsafe-reports
+          if-no-files-found: ignore
